@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Generator - Conlang Club @ UCSD</title>
+<meta name="description" content="Generate words for your conlang from sound classes, syllable patterns, and rewrite rules. Every setting is saved in the link, so you can share a generator with anyone.">
+<link rel="icon" href="/assets/logo.png" type="image/png">
+<link rel="stylesheet" href="/styles.css">
+<link rel="canonical" href="https://word-generator.conlangatucsd.com/">
+<meta property="og:title" content="Word Generator | Conlang Club @ UCSD">
+<meta property="og:description" content="Generate conlang words from sound classes, syllable patterns, and rewrite rules. Shareable by link.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://word-generator.conlangatucsd.com/assets/logo.png">
+<meta property="og:url" content="https://word-generator.conlangatucsd.com/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Word Generator | Conlang Club @ UCSD">
+<meta name="twitter:description" content="Generate conlang words from sound classes, syllable patterns, and rewrite rules. Shareable by link.">
+<meta name="twitter:image" content="https://word-generator.conlangatucsd.com/assets/logo.png">
+
+<!-- I'm keeping style.css consistent between pages
+  so these are things that weren't in the original -->
+<style>
+  button.btn{ cursor: pointer; }
+  .btn[disabled]{ opacity: 0.5; cursor: not-allowed; }
+
+  .gen-layout{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+    align-items: start;
+  }
+  .gen-out{ position: sticky; top: 104px; }
+  @media (max-width: 860px){
+    .gen-layout{ grid-template-columns: 1fr; }
+    .gen-out{ position: static; }
+  }
+
+  .preset-row{ display: flex; flex-wrap: wrap; gap: 14px; margin: 6px 0 26px; }
+
+  .field{ margin-bottom: 20px; }
+  .field > label, .field > .label{
+    display: block;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
+  .field .hint{
+    font-size: 0.85rem;
+    color: #5a3a58;
+    margin: 5px 0 0;
+    max-width: none;
+    line-height: 1.45;
+  }
+  .gen-input{
+    width: 100%;
+    font: inherit;
+    font-size: 0.95rem;
+    color: var(--ink);
+    background: var(--cream);
+    border: var(--line) solid var(--ink);
+    border-radius: 8px;
+    padding: 0.55em 0.7em;
+  }
+  textarea.gen-input, .gen-input--code{
+    font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Liberation Mono', monospace;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    resize: vertical;
+  }
+  .field-row{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 480px){ .field-row{ grid-template-columns: 1fr 1fr; } }
+
+  .checks{ display: flex; flex-wrap: wrap; gap: 10px 22px; margin-bottom: 4px; }
+  .check{ display: inline-flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; }
+  .check input{ width: 20px; height: 20px; accent-color: var(--purple); cursor: pointer; }
+
+  .out-head{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin-bottom: 14px;
+  }
+  .out-head h2{ font-size: 1.5rem; margin: 0; }
+  .out-meta{ font-size: 0.88rem; font-style: italic; color: var(--purple-deep); margin: 0; max-width: none; }
+  .out-actions{ display: flex; flex-wrap: wrap; gap: 14px; margin-bottom: 20px; }
+
+  .word-box{ max-height: 58vh; overflow-y: auto; padding: 2px; }
+  @media (max-width: 860px){ .word-box{ max-height: none; } }
+  .word-list{ display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+  .word{
+    font-family: var(--font-display), var(--font-body);
+    font-weight: 500;
+    font-size: 1.1rem;
+    line-height: 1.3;
+    color: var(--ink);
+    background: var(--cream);
+    border: 2px solid var(--ink);
+    border-radius: 6px;
+    padding: 4px 12px;
+    cursor: pointer;
+  }
+  .word:hover{ background: var(--gold); }
+  .out-empty{ margin: 0; font-style: italic; }
+
+  .gen-notes{ margin: 16px 0 0; }
+  .gen-notes[hidden]{ display: none; }
+  .gen-notes div + div{ margin-top: 6px; }
+  .gen-status{ min-height: 1.6em; margin: 12px 0 0; font-size: 0.9rem; font-weight: 600; color: var(--purple-deep); max-width: none; }
+
+  .gen-help{ border-top: var(--line-thick) solid var(--ink); }
+  .gen-help .faq-list{ max-width: 820px; }
+  .faq-answer code{
+    font-family: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+    font-size: 0.88em;
+    background: var(--cream);
+    border: 1px solid rgba(23,17,15,0.35);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+  .faq-answer ul{ margin: 0.6em 0 0; padding-left: 1.2em; }
+  .faq-answer li{ margin-bottom: 0.35em; }
+</style>
+</head>
+<body>
+
+<div data-include="header">
+<header class="site-header">
+  <nav class="nav">
+    <a class="brand" href="https://conlangatucsd.com/">
+      <img src="/assets/logo.png" alt="Conlang Club at UCSD logo" width="46" height="46" decoding="async">
+      <span class="brand-text">Conlang Club<span>@ UC San Diego</span></span>
+    </a>
+    <ul class="nav-links nav-links--static">
+      <li><a href="https://conlangatucsd.com/">Home</a></li>
+      <li><a href="https://conlangatucsd.com/tlag/">Tlag</a></li>
+      <li><a href="https://conlangatucsd.com/about/">About Us</a></li>
+      <li><a href="https://conlangatucsd.com/officers/">Officers</a></li>
+      <li><a href="https://conlangatucsd.com/projects/">Member Projects</a></li>
+      <li><a href="https://conlangatucsd.com/tools/">Tools</a></li>
+      <li><a href="https://conlangatucsd.com/faq/">FAQ</a></li>
+      <li><a href="https://discord.gg/PdkpT26AHG">Join Discord</a></li>
+    </ul>
+  </nav>
+</header>
+</div>
+
+<main>
+
+  <section class="page-banner">
+    <div class="wrap">
+      <h1>Word generator</h1>
+      <p>Describe your sounds, pick a syllable shape, and get words that follow your rules. Every setting is stored in the page link, so you can bookmark a generator or send it to a friend.</p>
+    </div>
+  </section>
+
+  <section class="section-cream">
+    <div class="wrap">
+
+      <span class="eyebrow-tag">Start from a preset</span>
+      <div class="preset-row" id="presets" role="group" aria-label="Presets"></div>
+
+      <div class="gen-layout">
+
+        <form class="card" id="gen-form" autocomplete="off" onsubmit="return false;">
+          <h2 style="font-size:1.5rem;">Settings</h2>
+
+          <div class="field">
+            <label for="classes">Sound classes</label>
+            <textarea class="gen-input" id="classes" rows="5" spellcheck="false"></textarea>
+            <p class="hint">One class per line, written <code>C=p/t/k</code>. Class names are single capital letters.</p>
+          </div>
+
+          <div class="field">
+            <label for="pattern">Syllable pattern</label>
+            <input class="gen-input gen-input--code" id="pattern" type="text" spellcheck="false">
+            <p class="hint">Capitals pull from a class, <code>( )</code> is optional, <code>[a/b]</code> picks one. See the syntax guide below.</p>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="min">Min syllables</label>
+              <input class="gen-input" id="min" type="number" min="1" max="8" inputmode="numeric">
+            </div>
+            <div class="field">
+              <label for="max">Max syllables</label>
+              <input class="gen-input" id="max" type="number" min="1" max="8" inputmode="numeric">
+            </div>
+            <div class="field">
+              <label for="count">Words</label>
+              <input class="gen-input" id="count" type="number" min="1" max="500" inputmode="numeric">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="rules">Rewrite and reject rules</label>
+            <textarea class="gen-input" id="rules" rows="4" spellcheck="false"></textarea>
+            <p class="hint"><code>ti&gt;chi</code> rewrites, <code>!kk</code> rejects. Wrap in slashes for regular expressions.</p>
+          </div>
+
+          <div class="field">
+            <label for="dist">Sound frequency</label>
+            <select class="gen-input" id="dist">
+              <option value="even">Even: every option equally likely</option>
+              <option value="zipf">Natural: earlier options are more common</option>
+              <option value="steep">Steep: earlier options dominate</option>
+            </select>
+            <p class="hint">Applies to <code>/</code> choices without a <code>*weight</code>. Put your most common sounds first.</p>
+          </div>
+
+          <div class="field">
+            <span class="label">Output</span>
+            <div class="checks">
+              <label class="check"><input type="checkbox" id="unique"> No duplicates</label>
+              <label class="check"><input type="checkbox" id="sort"> Sort A to Z</label>
+              <label class="check"><input type="checkbox" id="cap"> Capitalize</label>
+            </div>
+          </div>
+
+          <div class="field" style="margin-bottom:0;">
+            <label for="seed">Seed</label>
+            <input class="gen-input gen-input--code" id="seed" type="text" spellcheck="false">
+            <p class="hint">The same settings and seed always produce the same words. Type anything you like.</p>
+          </div>
+        </form>
+
+        <div class="card gen-out" id="output-card">
+          <div class="out-head">
+            <h2>Words</h2>
+            <p class="out-meta" id="meta"></p>
+          </div>
+          <div class="out-actions">
+            <button type="button" class="btn" id="reroll">Reroll</button>
+            <button type="button" class="btn btn--small" id="copy-all">Copy all</button>
+            <button type="button" class="btn btn--small" id="copy-link">Copy link</button>
+          </div>
+          <div class="word-box">
+            <ul class="word-list" id="words" aria-label="Generated words">
+              <li><noscript>This generator needs JavaScript to run.</noscript></li>
+            </ul>
+          </div>
+          <div class="sample-script gen-notes" id="notes" hidden></div>
+          <p class="gen-status" id="status" role="status" aria-live="polite"></p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section-paper gen-help">
+    <div class="wrap">
+      <span class="eyebrow-tag">Syntax guide</span>
+      <h2>How the rules work</h2>
+      <div class="faq-list" style="margin-top:30px;">
+
+        <details class="faq-item">
+          <summary>Writing a pattern</summary>
+          <div class="faq-answer">
+            <p>A pattern is read left to right. Anything that isn't special is written out as-is, so <code>ka</code> always gives <code>ka</code>.</p>
+            <ul>
+              <li><code>C</code>, <code>V</code>, <code>S</code>: a capital letter means "pick a sound from that class".</li>
+              <li><code>a/b/c</code>: pick one of these. Works on whole chunks too, <code>CV/VC</code>.</li>
+              <li><code>(C)</code>: optional, used half the time. <code>(C)%20</code> makes it 20% likely.</li>
+              <li><code>[a/e/i]</code>: a required group, handy for a choice in the middle of a pattern, as in <code>C[a/e/i]n</code>.</li>
+              <li><code>a*3/b</code>: weight. <code>a</code> is three times as likely as <code>b</code>.</li>
+              <li><code>\C</code>: a backslash writes the next character literally, so <code>\C</code> gives a capital C.</li>
+            </ul>
+            <p>The generator repeats your syllable pattern between the min and max syllable counts. For one-off word shapes, set both to 1 and put the whole shape in the pattern.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Sound classes</summary>
+          <div class="faq-answer">
+            <p>Each line defines one class. Separate sounds with <code>/</code>, or with spaces if you prefer: <code>V=a e i o u</code> works too. Sounds can be more than one character (<code>ts</code>, <code>ai</code>), and a class can use other classes, so <code>C=P/N</code> pulls from <code>P</code> and <code>N</code>.</p>
+            <p>Order matters when sound frequency is set to Natural or Steep: the first sound listed is the most common. Use <code>*weight</code> on an option to override that, like <code>C=t/k/p*0.2</code>.</p>
+            <p>If a capital letter appears in a pattern but has no class, it's written out as a plain letter and the page warns you.</p>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Rewrite and reject rules</summary>
+          <div class="faq-answer">
+            <p>Rules run on each finished word, top to bottom, one per line.</p>
+            <ul>
+              <li><code>ti&gt;chi</code>: replace every <code>ti</code> with <code>chi</code>. Leave the right side empty to delete.</li>
+              <li><code>/^k/&gt;g</code>: wrapping the left side in slashes makes it a regular expression, so <code>^</code> and <code>$</code> mark the start and end of a word. <code>$1</code> style references work on the right.</li>
+              <li><code>!kk</code>: throw away any word containing <code>kk</code>, then draw another.</li>
+              <li><code>!/(.)\1\1/</code>: reject regular expressions work too. This one blocks a letter repeated three times.</li>
+              <li><code>// note</code>: lines starting with two slashes are ignored.</li>
+            </ul>
+          </div>
+        </details>
+
+        <details class="faq-item">
+          <summary>Sharing and deep links</summary>
+          <div class="faq-answer">
+            <p>Every change updates the address bar. Copy the link and anyone who opens it sees your exact settings and the same words. Click any word to copy it.</p>
+            <p>If you build links by hand, the parameters are <code>c</code> (classes), <code>p</code> (pattern), <code>min</code>, <code>max</code>, <code>n</code> (word count), <code>f</code> (rules), <code>d</code> (<code>even</code>, <code>zipf</code> or <code>steep</code>), <code>seed</code>, and <code>u</code>, <code>sort</code>, <code>cap</code> (each <code>1</code> or <code>0</code>). Anything you leave out falls back to the default preset.</p>
+          </div>
+        </details>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="section-gold">
+    <div class="wrap">
+      <div class="meeting-strip">
+        <div style="text-align:center; width:100%;">
+          <h2 style="max-width:34ch; margin:0 auto 12px;">Got a good one?</h2>
+          <p style="max-width:46ch; margin:0 auto 22px;">Share your sound system and favorite words with the club on Discord, or bring it to a Friday workshop.</p>
+          <a class="btn btn--small" href="https://discord.gg/PdkpT26AHG" target="_blank" rel="noopener">Join our Discord</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div data-include="footer">
+<footer class="site-footer site-footer--static">
+  <div class="wrap">
+    <p><strong style="color:#fff;">Conlang Club @ UCSD</strong><br><a href="https://conlangatucsd.com/">Home</a> · <a href="https://conlangatucsd.com/tlag/">Tlag</a> · <a href="https://conlangatucsd.com/about/">About</a> · <a href="https://conlangatucsd.com/officers/">Officers</a> · <a href="https://conlangatucsd.com/projects/">Projects</a> · <a href="https://conlangatucsd.com/tools/">Tools</a> · <a href="/">Word Generator</a> · <a href="https://conlangatucsd.com/faq/">FAQ</a> · <a href="https://discord.gg/PdkpT26AHG">Discord</a> · <a href="mailto:conlangclubatucsd@gmail.com">Email</a></p>
+    <p>&copy; <span data-year>2026</span> Conlang Club @ UCSD</p>
+  </div>
+</footer>
+</div>
+
+<script src="/script.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>
