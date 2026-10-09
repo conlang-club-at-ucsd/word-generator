@@ -20,7 +20,11 @@
       f: 'si>shi\nti>chi\ntu>tsu\nhu>fu\nzi>ji\ndi>ji\ndu>zu\nyi>i\nye>e\nwu>u\nwi>i\nwe>e', d: 'zipf' },
     { label: 'Short and tonal',
       c: 'C=p/t/k/m/n/s/l/h/f/ts/ch\nV=a/i/u/e/o/ai/ou\nF=n/ng/m\nT=1/2/3/4',
-      p: '(C)V(F)T', min: 1, max: 2, f: '', d: 'zipf' }
+      p: '(C)V(F)T', min: 1, max: 2, f: '', d: 'zipf' },
+    { label: 'Tlag',
+      c: 'O=k/m/s/l/r/t/n/p/g/x/ts/c/b/j/z/tl/h/f\nF=k/m/s/l/r/t/n/p/g/x/ts/c/b/j/z/tl/f\nV=i/aa/u/o/e/v/a',
+      p: '(O)V(F)', min: 1, max: 3,
+      f: '// Tlag (C)V(C); VV counts as two syllables; no coda h\n// stems take -hv/-mic/-ibi, u-/ni-/i-, -us/-mek/-ir\nvaa>aa\nve>e\nva>a\nvo>o\nvv>v\n!/([^a])\\1/\n!/(ts)\\1/\n!/(tl)\\1/', d: 'zipf' }
   ];
 
   var DEFAULTS = {
