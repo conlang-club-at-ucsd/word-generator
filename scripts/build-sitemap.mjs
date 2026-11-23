@@ -16,7 +16,7 @@ async function baseUrl() {
   return 'https://word-generator.conlangatucsd.com';
 }
 
-const SKIP_DIRS = new Set(['partials', 'assets', 'data', 'scripts', '.github', '.git']);
+const SKIP_DIRS = new Set(['partials', 'assets', 'data', 'scripts', 'src', 'node_modules', '.github', '.git']);
 const SKIP_FILES = new Set(['404.html']);
 
 async function walk(dir, out = []) {
